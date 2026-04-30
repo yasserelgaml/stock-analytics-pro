@@ -9,15 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "15.0.3",
-    "react": "19.0.0-rc-66207101-20241024",
-    "react-dom": "19.0.0-rc-66207101-20241024",
-    "framer-motion": "latest",
-    "lucide-react": "latest",
-    "recharts": "latest",
-    "sonner": "latest",
-    "swr": "latest",
-    "axios": "latest"
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "framer-motion": "^11.11.17",
+    "lucide-react": "^0.460.0",
+    "recharts": "^2.13.3",
+    "sonner": "^1.7.0",
+    "swr": "^2.2.5",
+    "axios": "^1.7.7"
   },
   "devDependencies": {
     "typescript": "latest",
