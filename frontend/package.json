@@ -12,9 +12,10 @@
     "axios": "latest",
     "framer-motion": "latest",
     "lucide-react": "latest",
-   "next": "^15.0.0",
+    "next": "^15.0.0",
     "react": "latest",
     "react-dom": "latest",
+    "react-is": "^19.2.5",
     "recharts": "latest",
     "sonner": "latest",
     "swr": "latest"
