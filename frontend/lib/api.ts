@@ -45,7 +45,10 @@ export interface User {
   email: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+// تعديل السطر 47 ليكون مرناً ويقرأ من Vercel
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL 
+  ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1` 
+  : 'http://127.0.0.1:8000/api/v1';
 
 // Helper to get token from localStorage
 function getAuthHeader(): Record<string, string> {
