@@ -135,9 +135,14 @@ export async function removeFromWatchlist(ticker: string): Promise<{ detail: str
 }
 
 export async function login(formData: FormData): Promise<AuthResponse> {
+  const params = new URLSearchParams();
+  formData.forEach((value, key) => {
+    params.append(key, value as string);
+  });
+
   const response = await fetch(`${API_BASE_URL}/auth/login`, {
     method: 'POST',
-    body: formData,
+    body: params,
   });
   if (!response.ok) {
     const errorData = await response.json();
