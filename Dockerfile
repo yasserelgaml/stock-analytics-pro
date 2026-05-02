@@ -27,14 +27,13 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Copy application code
 COPY app/ ./app/
-COPY .env* ./
 
-# Create database directory
+# Create database directory and initialize database
 RUN mkdir -p /app/data
 
 # Expose port 7860 (required by Hugging Face Spaces)
 EXPOSE 7860
 
 # Run the application with uvicorn in production mode
-# Using multiple workers for better performance
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860", "--workers", "2"]
+# Using a single worker to avoid SQLite locking issues
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860"]

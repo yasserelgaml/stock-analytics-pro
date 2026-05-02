@@ -10,12 +10,4 @@ pandas-ta>=0.3.14b0
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
 python-multipart>=0.0.6
-fastapi
-uvicorn
-sqlalchemy
-passlib[bcrypt]
-python-jose[cryptography]
-python-multipart
-yfinance
-pandas
-pydantic-settings
+httpx>=0.24.0

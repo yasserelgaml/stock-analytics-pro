@@ -7,7 +7,7 @@ sys.path.append(os.getcwd())
 
 from app.db.session import engine
 from app.db.base_class import Base
-from app.models import Stock, Price # Ensure models are registered
+import app.models # Ensure all models are registered
 from app.core.config import settings
 
 async def verify_db():
