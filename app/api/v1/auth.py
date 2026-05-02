@@ -52,15 +52,26 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
 
 @router.post("/login", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.email == form_data.username))
-    user = result.scalar_one_or_none()
-    
-    if not user or not security.verify_password(form_data.password, user.hashed_password):
+    try:
+        result = await db.execute(select(User).where(User.email == form_data.username))
+        user = result.scalar_one_or_none()
+        
+        if not user or not security.verify_password(form_data.password, user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        access_token = security.create_access_token(subject=user.id)
+        return {"access_token": access_token, "token_type": "bearer"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        import logging
+        logger = logging.getLogger("auth")
+        logger.error(f"Login error: {str(e)}", exc_info=True)
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal Server Error: {str(e)}"
         )
-    
-    access_token = security.create_access_token(subject=user.id)
-    return {"access_token": access_token, "token_type": "bearer"}
