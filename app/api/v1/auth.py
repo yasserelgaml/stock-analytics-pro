@@ -50,13 +50,26 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
     await db.refresh(user)
     return user
 
+from fastapi import Request
+
 @router.post("/login", response_model=Token)
-async def login(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
+async def login(request: Request, db: AsyncSession = Depends(get_db)):
     try:
-        result = await db.execute(select(User).where(User.email == user_in.email))
+        # Extract data manually from JSON body to bypass Pydantic 422 errors
+        body = await request.json()
+        email = body.get("email")
+        password = body.get("password")
+        
+        if not email or not password:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email and password are required"
+            )
+
+        result = await db.execute(select(User).where(User.email == email))
         user = result.scalar_one_or_none()
         
-        if not user or not security.verify_password(user_in.password, user.hashed_password):
+        if not user or not security.verify_password(password, user.hashed_password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect email or password",
