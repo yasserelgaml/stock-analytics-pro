@@ -19,10 +19,11 @@ export default function LoginPage() {
       await signIn(formData);
       toast.success('Welcome back!');
     } catch (error: any) {
+      console.error("FULL LOGIN ERROR OBJECT:", error);
       const errorMessage = typeof error === 'string' 
         ? error 
         : error?.detail || error?.message || 'Login failed';
-      toast.error(errorMessage);
+      toast.error(`Error: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
