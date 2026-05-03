@@ -142,18 +142,30 @@ export async function login(formData: FormData): Promise<AuthResponse> {
     data[finalKey] = value;
   });
 
-  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+  console.log("SENDING LOGIN REQUEST TO:", `${API_BASE_URL}/auth/login-test`);
+  console.log("REQUEST BODY:", JSON.stringify(data));
+
+  const response = await fetch(`${API_BASE_URL}/auth/login-test`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),
   });
+
+  const text = await response.text();
+  console.log("RAW RESPONSE FROM SERVER:", text);
+
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.detail || 'Login failed');
+    try {
+      const errorData = JSON.parse(text);
+      throw new Error(errorData.detail || 'Login failed');
+    } catch (e) {
+      throw new Error(`Server Error: ${text.substring(0, 100)}`);
+    }
   }
-  return response.json();
+  
+  return JSON.parse(text);
 }
 
 export async function register(email: string, password: string): Promise<User> {

@@ -52,7 +52,7 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
 
 from fastapi import Request
 
-@router.post("/login", response_model=Token)
+@router.post("/login-test", response_model=Token)
 async def login(request: Request, db: AsyncSession = Depends(get_db)):
     try:
         # Extract data manually from JSON body to bypass Pydantic 422 errors
