@@ -2,7 +2,7 @@
 title: Stock Analytics Pro API
 emoji: 📈
 colorFrom: blue
-colorTo: emerald
+colorTo: green
 sdk: docker
 pinned: false
 ---
