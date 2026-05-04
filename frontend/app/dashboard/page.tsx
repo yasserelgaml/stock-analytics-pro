@@ -268,7 +268,7 @@ export default function Dashboard() {
                     </div>
                     <button 
                       onClick={exportToCSV}
-                      className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs transition-all"
+                      className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs transition-all w-fit flex-shrink-0"
                     >
                       <Download size={14} /> Export CSV
                     </button>

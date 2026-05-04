@@ -46,23 +46,15 @@ export interface User {
 }
 
 // تعديل السطر 47 ليكون مرناً ويقرأ من Vercel
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL 
-  ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1` 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL
+  ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1`
   : 'http://127.0.0.1:8000/api/v1';
 
-// Helper to get token from localStorage
-function getAuthHeader(): Record<string, string> {
-  const token = localStorage.getItem('token');
-  const headers: Record<string, string> = {};
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  return headers;
-}
-
 export async function fetchStockAnalysis(ticker: string): Promise<AnalysisData> {
-  const response = await fetch(`${API_BASE_URL}/analysis/${ticker.toUpperCase()}`);
-  
+  const response = await fetch(`${API_BASE_URL}/analysis/${ticker.toUpperCase()}`, {
+    credentials: 'include',
+  });
+
   if (!response.ok) {
     if (response.status === 404) {
       throw new Error('Stock ticker not found');
@@ -76,43 +68,47 @@ export async function fetchStockAnalysis(ticker: string): Promise<AnalysisData> 
 export async function fetchAISummary(ticker: string): Promise<AISummary> {
   const response = await fetch(`${API_BASE_URL}/analysis/${ticker.toUpperCase()}/ai-summary`, {
     method: 'POST',
-    headers: getAuthHeader(),
+    credentials: 'include',
   });
   if (!response.ok) throw new Error('Failed to fetch AI summary');
   return response.json();
 }
 
 export async function fetchStockHistory(ticker: string) {
-  const response = await fetch(`${API_BASE_URL}/analysis/${ticker.toUpperCase()}/history`);
+  const response = await fetch(`${API_BASE_URL}/analysis/${ticker.toUpperCase()}/history`, {
+    credentials: 'include',
+  });
   if (!response.ok) throw new Error('Failed to fetch price history');
   return response.json();
 }
 
 export async function fetchStockNews(ticker: string): Promise<NewsItem[]> {
-  const response = await fetch(`${API_BASE_URL}/analysis/${ticker.toUpperCase()}/news`);
+  const response = await fetch(`${API_BASE_URL}/analysis/${ticker.toUpperCase()}/news`, {
+    credentials: 'include',
+  });
   if (!response.ok) throw new Error('Failed to fetch news');
   return response.json();
 }
 
 export async function fetchWatchlist(): Promise<WatchlistItem[]> {
   const response = await fetch(`${API_BASE_URL}/watchlist/`, {
-    headers: getAuthHeader(),
+    credentials: 'include',
   });
   if (!response.ok) throw new Error('Failed to fetch watchlist');
   return response.json();
 }
 
 export async function addToWatchlist(ticker: string): Promise<WatchlistItem> {
-  const headers = { 
+  const headers = {
     'Content-Type': 'application/json',
-    ...getAuthHeader() 
   };
   const response = await fetch(`${API_BASE_URL}/watchlist/`, {
     method: 'POST',
     headers: headers,
+    credentials: 'include',
     body: JSON.stringify({ ticker: ticker.toUpperCase() }),
   });
-  
+
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.detail || 'Failed to add to watchlist');
@@ -124,9 +120,9 @@ export async function addToWatchlist(ticker: string): Promise<WatchlistItem> {
 export async function removeFromWatchlist(ticker: string): Promise<{ detail: string }> {
   const response = await fetch(`${API_BASE_URL}/watchlist/${ticker.toUpperCase()}`, {
     method: 'DELETE',
-    headers: getAuthHeader(),
+    credentials: 'include',
   });
-  
+
   if (!response.ok) {
     throw new Error('Failed to remove from watchlist');
   }
@@ -137,24 +133,20 @@ export async function removeFromWatchlist(ticker: string): Promise<{ detail: str
 export async function login(formData: FormData): Promise<AuthResponse> {
   const data: Record<string, any> = {};
   formData.forEach((value, key) => {
-    // map 'username' from form to 'email' for the backend JSON model
     const finalKey = key === 'username' ? 'email' : key;
     data[finalKey] = value;
   });
 
-  console.log("SENDING LOGIN REQUEST TO:", `${API_BASE_URL}/auth/login-test`);
-  console.log("REQUEST BODY:", JSON.stringify(data));
-
-  const response = await fetch(`${API_BASE_URL}/auth/login-test`, {
+  const response = await fetch(`${API_BASE_URL}/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
+    credentials: 'include',
     body: JSON.stringify(data),
   });
 
   const text = await response.text();
-  console.log("RAW RESPONSE FROM SERVER:", text);
 
   if (!response.ok) {
     try {
@@ -172,6 +164,7 @@ export async function register(email: string, password: string): Promise<User> {
   const response = await fetch(`${API_BASE_URL}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ email, password }),
   });
   if (!response.ok) {

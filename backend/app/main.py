@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+import logging
 from app.api.v1.analysis import router as analysis_router
 from app.api.v1.watchlist import router as watchlist_router
 from app.api.v1.auth import router as auth_router
@@ -10,6 +12,22 @@ app = FastAPI(
     description="Professional Stock Analysis API with AI Insights",
     version="1.0.0"
 )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """
+    Global exception handler to ensure all unhandled errors return a consistent JSON format.
+    Logs the full exception for internal debugging.
+    """
+    logging.error(f"Unhandled exception: {str(exc)}", exc_info=True)
+
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": "An unexpected internal server error occurred.",
+            "error": "Internal Server Error" if settings.ENVIRONMENT == "production" else str(exc)
+        },
+    )
 
 # Production CORS Configuration
 app.add_middleware(

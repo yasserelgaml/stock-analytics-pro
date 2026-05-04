@@ -11,6 +11,7 @@
   "dependencies": {
     "axios": "latest",
     "framer-motion": "latest",
+    "js-cookie": "^3.0.5",
     "lucide-react": "latest",
     "next": "^15.0.0",
     "react": "latest",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.4",
+    "@types/js-cookie": "^3.0.6",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
