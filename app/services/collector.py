@@ -1,3 +1,4 @@
+import asyncio
 import yfinance as yf
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -19,9 +20,10 @@ class StockCollector:
         Fetches company information for a given ticker and saves it to the Stocks table.
         """
         try:
-            ticker = yf.Ticker(ticker_symbol)
-            info = ticker.info
-            
+            # Use asyncio.to_thread to avoid blocking the event loop with yfinance
+            ticker = await asyncio.to_thread(yf.Ticker, ticker_symbol)
+            info = await asyncio.to_thread(lambda: ticker.info)
+
             if not info or 'shortName' not in info:
                 logger.error(f"Could not find info for ticker: {ticker_symbol}")
                 return None
@@ -56,22 +58,30 @@ class StockCollector:
     async def fetch_historical_prices(self, ticker_symbol: str, stock_id: int, db: AsyncSession):
         """
         Fetches historical prices for the last 30 days and saves them to the Prices table.
+        Prevents duplicate entries by checking existing timestamps.
         """
         try:
-            ticker = yf.Ticker(ticker_symbol)
-            # Fetch 1 month of daily data
-            df = ticker.history(period="1mo")
+            # Use asyncio.to_thread to avoid blocking the event loop with yfinance
+            ticker = await asyncio.to_thread(yf.Ticker, ticker_symbol)
+            df = await asyncio.to_thread(lambda: ticker.history(period="1mo"))
 
             if df.empty:
                 logger.warning(f"No historical data found for ticker: {ticker_symbol}")
                 return
 
+            # Fetch existing timestamps to avoid duplicates
+            result = await db.execute(select(Price.timestamp).where(Price.stock_id == stock_id))
+            existing_timestamps = {row[0] for row in result.all()}
+
             prices_to_add = []
             for timestamp, row in df.iterrows():
-                # Convert pandas timestamp to python datetime
+                dt = timestamp.to_pydatetime()
+                if dt in existing_timestamps:
+                    continue
+
                 price_record = Price(
                     stock_id=stock_id,
-                    timestamp=timestamp.to_pydatetime(),
+                    timestamp=dt,
                     open=float(row['Open']),
                     high=float(row['High']),
                     low=float(row['Low']),
@@ -80,8 +90,11 @@ class StockCollector:
                 )
                 prices_to_add.append(price_record)
 
-            db.add_all(prices_to_add)
-            logger.info(f"Successfully fetched {len(prices_to_add)} price records for {ticker_symbol}")
-            
+            if prices_to_add:
+                db.add_all(prices_to_add)
+                logger.info(f"Successfully added {len(prices_to_add)} new price records for {ticker_symbol}")
+            else:
+                logger.info(f"No new price records to add for {ticker_symbol}")
+
         except Exception as e:
             logger.error(f"Error fetching prices for {ticker_symbol}: {str(e)}")

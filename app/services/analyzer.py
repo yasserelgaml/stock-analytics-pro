@@ -41,6 +41,30 @@ class TechnicalAnalyzer:
 
             if len(prices) < 50:
                 logger.warning(f"Not enough data for stock_id {stock_id} to calculate all indicators (min 50 required).")
+                # Return basics but mark signal as Insufficient Data
+                df = pd.DataFrame([
+                    {
+                        "timestamp": p.timestamp,
+                        "open": p.open,
+                        "high": p.high,
+                        "low": p.low,
+                        "close": p.close,
+                        "volume": p.volume
+                    } for p in prices
+                ])
+                df.set_index("timestamp", inplace=True)
+
+                last_row = df.iloc[-1] if not df.empty else None
+                if last_row is None: return None
+
+                return {
+                    "current_price": float(last_row['close']),
+                    "rsi": None,
+                    "sma_20": None,
+                    "sma_50": None,
+                    "macd": None,
+                    "signal": "Insufficient Data"
+                }
             
             # 2. Convert to Pandas DataFrame
             df = pd.DataFrame([
@@ -75,13 +99,27 @@ class TechnicalAnalyzer:
             sma_50 = float(last_row['SMA_50']) if not pd.isna(last_row['SMA_50']) else None
             macd_val = float(last_row['MACD']) if not pd.isna(last_row['MACD']) else None
 
-            # 4. Recommendation Logic
-            signal = "Hold"
+            # 4. Recommendation Logic (Weighted Scoring System)
+            score = 0
+
+            # SMA Crossover (Highest Weight)
             if sma_20 and sma_50:
-                if sma_20 > sma_50:
-                    signal = "Buy"
-                elif sma_20 < sma_50:
-                    signal = "Sell"
+                if sma_20 > sma_50: score += 2
+                elif sma_20 < sma_50: score -= 2
+
+            # RSI (Overbought/Oversold)
+            if rsi:
+                if rsi < 30: score += 1 # Oversold - potential Buy
+                elif rsi > 70: score -= 1 # Overbought - potential Sell
+
+            # MACD (Momentum)
+            if macd_val:
+                if macd_val > 0: score += 1
+                else: score -= 1
+
+            if score >= 2: signal = "Buy"
+            elif score <= -2: signal = "Sell"
+            else: signal = "Hold"
 
             return {
                 "current_price": current_price,

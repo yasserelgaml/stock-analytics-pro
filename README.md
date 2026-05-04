@@ -1,4 +1,14 @@
+---
+title: Stock Analytics Pro API
+emoji: 📈
+colorFrom: blue
+colorTo: emerald
+sdk: docker
+pinned: false
+---
+
 # 📈 Stock Analytics Pro
+
 
 A professional-grade, full-stack stock analysis platform providing real-time technical indicators, fundamental data, and AI-powered market insights.
 

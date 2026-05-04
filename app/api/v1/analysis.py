@@ -4,7 +4,6 @@ from sqlalchemy import select
 from app.db.session import get_db
 from app.models import Stock, Price
 from app.services.analyzer import TechnicalAnalyzer
-from app.services.ai_service import AIService
 from app.schemas.analysis import AnalysisResponse, AISummaryResponse, Fundamentals
 from app.core.cache import cache
 from typing import List, Dict, Any
@@ -17,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 analyzer = TechnicalAnalyzer()
-ai_service = AIService()
 
 @router.get("/{ticker}", response_model=AnalysisResponse)
 async def get_stock_analysis(ticker: str, db: AsyncSession = Depends(get_db)):
@@ -105,37 +103,27 @@ async def get_ai_summary(ticker: str, db: AsyncSession = Depends(get_db)):
     if signal == "Buy": sentiment = "Bullish"
     elif signal == "Sell": sentiment = "Bearish"
     
-    # Try to get AI-powered summary from Hugging Face
-    ai_result = await ai_service.generate_summary(ticker_upper, techs)
-    
-    if ai_result:
-        response = AISummaryResponse(
-            summary=ai_result.get("summary", "AI could not generate a detailed summary."),
-            sentiment=ai_result.get("sentiment", sentiment)
-        )
+    summary_parts = []
+    if signal == "Buy":
+        summary_parts.append(f"The stock is showing a strong bullish trend with a Golden Cross (SMA20 > SMA50).")
+    elif signal == "Sell":
+        summary_parts.append(f"The stock is currently in a bearish phase, indicated by a Death Cross (SMA20 < SMA50).")
     else:
-        # Fallback to rule-based summary
-        summary_parts = []
-        if signal == "Buy":
-            summary_parts.append(f"The stock is showing a strong bullish trend with a Golden Cross (SMA20 > SMA50).")
-        elif signal == "Sell":
-            summary_parts.append(f"The stock is currently in a bearish phase, indicated by a Death Cross (SMA20 < SMA50).")
-        else:
-            summary_parts.append(f"The stock is currently consolidating with no clear trend direction.")
-            
-        if rsi > 70:
-            summary_parts.append("RSI indicates the asset is overbought, suggesting a potential pullback.")
-        elif rsi < 30:
-            summary_parts.append("RSI indicates the asset is oversold, which may present a buying opportunity.")
-        else:
-            summary_parts.append("RSI is in a neutral zone, showing stable momentum.")
-            
-        summary_parts.append(f"Overall, the current technical setup suggests a {sentiment.lower()} outlook for {ticker_upper}.")
+        summary_parts.append(f"The stock is currently consolidating with no clear trend direction.")
         
-        response = AISummaryResponse(
-            summary=" ".join(summary_parts),
-            sentiment=sentiment
-        )
+    if rsi > 70:
+        summary_parts.append("RSI indicates the asset is overbought, suggesting a potential pullback.")
+    elif rsi < 30:
+        summary_parts.append("RSI indicates the asset is oversold, which may present a buying opportunity.")
+    else:
+        summary_parts.append("RSI is in a neutral zone, showing stable momentum.")
+        
+    summary_parts.append(f"Overall, the current technical setup suggests a {sentiment.lower()} outlook for {ticker_upper}.")
+    
+    response = AISummaryResponse(
+        summary=" ".join(summary_parts),
+        sentiment=sentiment
+    )
     
     cache.set(cache_key, response)
     return response
