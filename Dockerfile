@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Pre-install pandas-ta from GitHub to avoid pip issues
-RUN pip install --no-cache-dir https://github.com/twopirllc/pandas-ta/archive/refs/heads/main.zip
+RUN pip install --no-cache-dir pandas-ta
 
 # Copy requirements first for better caching
 COPY requirements.txt .
