@@ -131,19 +131,10 @@ export async function removeFromWatchlist(ticker: string): Promise<{ detail: str
 }
 
 export async function login(formData: FormData): Promise<AuthResponse> {
-  const data: Record<string, any> = {};
-  formData.forEach((value, key) => {
-    const finalKey = key === 'username' ? 'email' : key;
-    data[finalKey] = value;
-  });
-
   const response = await fetch(`${API_BASE_URL}/auth/login`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     credentials: 'include',
-    body: JSON.stringify(data),
+    body: formData,
   });
 
   const text = await response.text();
