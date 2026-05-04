@@ -16,6 +16,7 @@ ENV ENVIRONMENT=production
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
